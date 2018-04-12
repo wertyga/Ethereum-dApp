@@ -49,6 +49,9 @@ App = {
       const candidatesResults = $('#candidatesResults');
       candidatesResults.empty();
 
+      var candidatesSelect = $('#candidatesSelect');
+      candidatesSelect.empty();
+
       for(let i = 1; i <= candidatesCount; i++) {
         electionInstance.candidates(i).then(candidate => {
           let id = candidate[0];
@@ -56,39 +59,44 @@ App = {
           let voteCount = candidate[2];
 
           // Render candidate Result
-          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>";
           candidatesResults.append(candidateTemplate);
+
+          // Render candidate ballot option
+          var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+          candidatesSelect.append(candidateOption);
         })
       };
 
-      loader.hide();
-      content.show();
-
+      return electionInstance.voters(App.account);
     })
+        .then(hasVoted => {
+          if(hasVoted) {
+            $('form').hide();
+          };
+
+          loader.hide();
+          content.show();
+        })
         .catch(err => {
           loader.hide();
           console.warn(err);
         })
   },
 
-  bindEvents: function() {
-    $(document).on('click', '.btn-adopt', App.handleAdopt);
-  },
-
-  markAdopted: function(adopters, account) {
-    /*
-     * Replace me...
-     */
-  },
-
-  handleAdopt: function(event) {
-    event.preventDefault();
-
-    var petId = parseInt($(event.target).data('id'));
-
-    /*
-     * Replace me...
-     */
+  castVote: function() {
+      let candidateId = $('#candidatesSelect').val();
+      App.contracts.Election.deployed()
+          .then(instance => {
+            return instance.vote(candidateId, { from: App.account })
+          })
+          .then(result => {
+            $('#loader').hide();
+            $('#content').show();
+          })
+          .catch(err => {
+            console.error(err);
+          })
   }
 
 };
