@@ -26,7 +26,8 @@ contract Election {
     }
 
     function Election() public {
-        candidate = 'Candidate1';
+        addCandidate('Candidate1');
+        addCandidate('Candidate2');
     }
 
     function vote(uint _candidateId) public {
